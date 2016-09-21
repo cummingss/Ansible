@@ -1,7 +1,11 @@
 # Ansible
+
+This Project contains the Windows Modules for an Ansible installation on Centos 7.x
+
+The Ansible installation is done following the instructions here:  http://docs.ansible.com/ansible/intro_installation.html#latest-release-via-yum
+
 Windows Modules - for Ansible GitHub Repo.
 
-My Work Notes, Playbooks and Scripts
 
 ## Windows Remote Nodes Pre-Reqs:
 ### PRE-Windows 2012 there are some requirements:

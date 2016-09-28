@@ -1,3 +1,6 @@
+$HostName = "MLDCUSE1001"
+$DomainToJoin = "mldir.net"
+
 if (!$SafeModeAdministratorPassword) {
 	$SafeModeAdministratorPassword = (Get-Credential -Message "Enter credentials required for SafeModeAdministratorPassword (DSRM).")
 }
@@ -8,6 +11,11 @@ Install-WindowsFeature AD-Domain-Services,DNS,RSAT-DFS-Mgmt-Con,RSAT-DNS-Server 
 # Enable RPC Firewall Rule.
 Enable-NetFirewallRule -DisplayName "COM+ Network Access (DCOM-In)"
 
+# Rename Computer
+if ($ENV:ComputerName -ne $HostName) {
+	Rename-computer -newname $HostName
+    restart-computer -Force
+}
 
 # Import Powershelll Module
 Import-Module ADDSDeployment

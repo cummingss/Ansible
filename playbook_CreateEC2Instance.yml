@@ -1,68 +1,48 @@
-# demo_setup.yml
-#--Launch instance, runs some tasks and then terminate them
-
-- name: Create EC2 Instance from AMI
-  hosts: localhost
+---
+# Launch instance, runs some tasks and then terminate them
+-
+  hosts: all
   connection: local
   gather_facts: False
-  
+
+
+#  vars_files:
+    # Include Relative Path file
+    #- /etc/ansible/group_vars/windows.yml
+
   vars:
-	servername: mldcuse1002
+    servername: prdcuse1004
     profile: dev
-    key_name: Simon_Cummings
+    key_name: SimonCummings
     instance_type: t2.small
-    security_group: ['windows-domain-controllers', 'Windows_Secuirity_Group']
+    security_group: sg-e729bd9d
     image: ami-9fcfb688 # Windows 2012 R2v2
     region: us-east-1
     subnet: subnet-45e7340c
-	tasks:
-    - name: Launch instance
+
+  tasks:
+    - name: Provision Instance
       ec2:
-		key_name: "{{ key_name }}"
-		group: "{{ security_group }}"
-		instance_type: "{{ instance_type }}"
-		image: "{{ image }}"
-		wait: true
-		region: "{{ region }}"
-		profile: "{{ profile }}"
-		vpc_subnet_id: "{{ subnet }}"
-		exact_count: 1
-		count_tag:
-			Owner: "simon_cummings"
-			Name: "{{ servername }}"
-			Project: "ES_PCM"
-		instance_tags:
-			Owner: "adam_furminger"
-			OwnerEmail: "adam_furminger@symantec.com"
-			ApplicationRole: "ansible"
-			Name: "{{ servername }}"
-			Project: "ES_PCM"
-			BusinessUnit: "Enterprise Security"          
-		#monitoring: no
-		#|assign_public_ip: yes
-		register: ec2
-
-	- name: Add new instance to host group
-	add_host: hostname={{ item.public_ip }} groupname=launched
-	with_items: '{{ec2.instances}}'
-
-	- name: Wait for SSH to come up
-	wait_for: host={{ item.public_dns_name }} port=22 delay=60 timeout=320 state=started
-	with_items: '{{ec2.instances}}'
-
-#	- name: Configure instance(s)
-#	  hosts: launched
-#	  become: True
-#	  gather_facts: True
-#	  roles:
-#		- my_awesome_role
-#		- my_awesome_test
-
-#	- name: Terminate instances
-#	  hosts: localhost
-#	  connection: local
-#	  tasks:
-#		- name: Terminate instances that were previously launched
-#		  ec2:
-#			state: 'absent'
-#			instance_ids: '{{ ec2.instance_ids }}'
+        key_name: "{{ key_name }}"
+        group_id: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ image }}"
+        wait: true
+        region: "{{ region }}"
+        profile: "{{ profile }}"
+        vpc_subnet_id: "{{ subnet }}"
+        exact_count: 1
+        count_tag:
+          Owner: "simon_cummings"
+          Name: windows-simon_ansible_test
+          Project: "ES_PCM"
+        instance_tags:
+          Owner: "simon_cummings"
+          OwnerEmail: "DL-ESP-ServiceDesign-AWS@symantec.com"
+          ApplicationRole: "Windows - via Ansible"
+          Name: "{{ servername }}"
+          Project: "ES_PCM"
+          BusinessUnit: "Enterprise Security"
+        #monitoring: no
+        #|assign_public_ip: yes
+      register: ec2

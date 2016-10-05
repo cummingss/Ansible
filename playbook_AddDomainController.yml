@@ -49,13 +49,6 @@
       changed_when: "'Restart Needed' in result.stdout"
       failed_when: false
 
-#    - name: Restart Computer following computername change.
-#      raw: powershell.exe -executionpolicy bypass "restart-computer -force"
-#      async: 0
-#      poll: 0
-#      ignore_errors: true
-#      when: result.changed
-
     # Reboot Windows following change name change
     - win_reboot:
       when: result.changed

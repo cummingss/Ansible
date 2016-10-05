@@ -1,0 +1,75 @@
+- name: Install Domain Controller Windows 2012 R2
+  hosts: domaincontrollers
+  connection: local
+  gather_facts: false
+  vars:
+    #tz: 'GMT Standard Time'
+    tz: UTC
+    servername: prdcuse1003
+    domainname: prod.mldir.net
+  tasks:
+    - name: Configure Winrm
+      raw: powershell.exe -executionpolicy bypass "winrm quickconfig -q"
+      register: result
+
+    - name: Rename Computer
+      raw: powershell.exe -executionpolicy bypass "rename-computer -newname {{ servername }} -force"
+      register: result
+      changed_when: "'restart' in result.stdout"
+      failed_when: false
+
+    # Reboot Windows following change name change
+    - win_reboot:
+      when: result.changed
+
+    # Wait for RDP port to become available.
+    - name: Wait for RDP following reboot.
+      local_action: wait_for host="{{ inventory_hostname }}" port=3389 state=started timeout=600
+
+    - name: Import Server Manager Powershell Module
+      raw: powershell.exe -executionpolicy bypass "import-module servermanager"
+
+    - name: Install Windows features.
+      raw: powershell.exe -executionpolicy bypass "import-module servermanager ; Add-WindowsFeature DNS,RSAT-DFS-Mgmt-Con,RSAT-DNS-Server"
+      register: result
+      changed_when: "'Restart Needed' in result.stdout"
+      failed_when: false
+
+    # Reboot Windows following change name change
+    - win_reboot:
+      when: result.changed
+
+    # Wait for RDP port to become available.
+    - name: Wait for RDP following reboot.
+      local_action: wait_for host="{{ inventory_hostname }}" port=3389 state=started timeout=600
+
+    - name: Install Windows features for Active Directory Services.
+      raw: powershell.exe -executionpolicy bypass "import-module servermanager ; Add-WindowsFeature AD-Domain-Services,RSAT-AD-Tools,RSAT-AD-Powershell -IncludeManagementTools"
+      register: result
+      changed_when: "'Restart Needed' in result.stdout"
+      failed_when: false
+
+#    - name: Restart Computer following computername change.
+#      raw: powershell.exe -executionpolicy bypass "restart-computer -force"
+#      async: 0
+#      poll: 0
+#      ignore_errors: true
+#      when: result.changed
+
+    # Reboot Windows following change name change
+    - win_reboot:
+      when: result.changed
+
+    # Wait for RDP port to become available.
+    - name: Wait for RDP following reboot.
+      local_action: wait_for host="{{ inventory_hostname }}" port=3389 state=started timeout=600
+
+    - name: Add Powershell Modules for Active Directory.
+      raw: powershell.exe -executionpolicy bypass "Import-Module ADDSDeployment"
+
+#    - debug: var=addfeature_result
+#    - debug: var=renamecomputer_result
+#    - debug: var=addfeature_result
+#    - debug: var=rdp
+#    - debug: var=result.rc
+#    - debug: var=result.stdo:out_lines

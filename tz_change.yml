@@ -1,0 +1,10 @@
+- name: Change TimeZone on Windows Hosts
+  hosts: win2
+  connection: local
+  gather_facts: False
+  vars:
+    #tz: 'GMT Standard Time'
+    tz: UTC
+  tasks:
+    - name: Run powershell script
+      script: /etc/ansible/library/ansible-modules-extras/custom/windows/win_timezone2.ps1 '{{tz}}'
